@@ -1,0 +1,25 @@
+#ifndef __MY_STRING_VIEW__
+#define __MY_STRING_VIEW__
+
+#include <cstddef>
+#include <ostream>
+#include <string>
+
+namespace std {
+
+    class string_view {
+	public:
+	    constexpr string_view() noexcept : m_data{nullptr} {}
+	    constexpr string_view(const char* s) noexcept : m_data{s} {}
+
+	    size_t size() const noexcept;
+
+	    friend ostream& operator<<(ostream&, string_view);
+
+	private:
+	    const char* m_data;
+    };
+
+}
+
+#endif /* __MY_STRING_VIEW__ */

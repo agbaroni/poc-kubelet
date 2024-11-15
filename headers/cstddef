@@ -1,0 +1,10 @@
+#ifndef __MY_CSTDDEF__
+#define __MY_CSTDDEF__
+
+namespace std {
+
+    using size_t = unsigned long int;
+
+}
+
+#endif /* __MY_CSTDDEF__ */

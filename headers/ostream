@@ -1,0 +1,95 @@
+#ifndef __MY_OSTREAM__
+#define __MY_OSTREAM__
+
+#include <cstddef>
+#include <string>
+#include <ios>
+
+namespace std {
+
+    template<typename CharT, typename Traits = char_traits<CharT>>
+    class basic_ostream;
+
+}
+
+namespace __internal {
+
+    extern void write(int, const char*, unsigned long);
+
+    template<typename CharT, typename Traits = std::char_traits<CharT>>
+    void write(std::basic_ostream<CharT, Traits>&, const char*, std::size_t);
+
+}
+
+namespace std {
+
+    template<typename CharT, typename Traits>
+    class basic_ostream : virtual public basic_ios<CharT, Traits> {
+	protected:
+	    basic_ostream(const basic_ostream&) = delete;
+	    basic_ostream(basic_ostream&&) = default;
+
+	    template<typename CharU, typename Uraits>
+	    friend basic_ostream<CharU, Uraits>& operator<<(basic_ostream<CharU, Uraits>& bos, const char* s) {
+		auto n = 0;
+		auto x = s;
+
+		while (x and *x) {
+		    n++;
+		    x++;
+		}
+
+		__internal::write(bos, s, n);
+
+		return bos;
+	    }
+
+	    template<typename CharU, typename Uraits>
+	    friend basic_ostream<CharU, Uraits>& operator<<(basic_ostream<CharU, Uraits>& bos, int n) {
+		char buffer[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		int i = 0;
+
+		if (n < 0) {
+		    buffer[i++] = '-';
+		    n = -n;
+		}
+
+		while (true) {
+		    auto r = n % 10;
+		    n = n / 10;
+		    buffer[i++] = '0' + r;
+		    if (n == 0) {
+			break;
+		    }
+		}
+
+		bos << buffer;
+
+		return bos;
+	    }
+
+	private:
+	    friend class ios_base::Init;
+
+	    template<typename CharU, typename Uraits>
+	    friend void __internal::write(basic_ostream<CharU, Uraits>&, const char*, std::size_t);
+
+	    basic_ostream(int descr) noexcept : m_descr{descr} {}
+
+	    int m_descr;
+    };
+
+    using ostream = basic_ostream<char>;
+
+}
+
+namespace __internal {
+
+    template<typename CharT, typename Traits>
+    void write(std::basic_ostream<CharT, Traits>& os, const char* data, std::size_t size) {
+	write(os.m_descr, data, size);
+    }
+
+}
+
+#endif /* __MY_OSTREAM__ */

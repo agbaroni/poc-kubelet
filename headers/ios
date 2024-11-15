@@ -1,0 +1,35 @@
+#ifndef __MY_IOS__
+#define __MY_IOS__
+
+#include <string>
+
+namespace std {
+
+    class ios_base {
+	public:
+	    class Init {
+		public:
+		    Init();
+		    ~Init();
+	    };
+
+	    ios_base(const ios_base&) = delete;
+
+	    virtual ~ios_base();
+
+	protected:
+	    ios_base();
+    };
+
+    template<class CharT, class Traits = char_traits<CharT>>
+    class basic_ios : public ios_base {
+	public:
+	    basic_ios(const basic_ios&) = delete;
+
+	protected:
+	    basic_ios() {}
+    };
+
+}
+
+#endif /* __MY_IOS__ */

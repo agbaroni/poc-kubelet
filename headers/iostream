@@ -1,0 +1,19 @@
+#ifndef __MY_IOSTREAM__
+#define __MY_IOSTREAM__
+
+#include <ios>
+#include <ostream>
+
+namespace __internal {
+
+    static std::ios_base::Init __ios_base_init;
+
+}
+
+namespace std {
+
+    extern ostream cout;
+
+}
+
+#endif /* __MY_IOSTREAM__ */

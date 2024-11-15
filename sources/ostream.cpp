@@ -1,0 +1,7 @@
+#include <ostream>
+
+namespace std {
+
+    
+
+}

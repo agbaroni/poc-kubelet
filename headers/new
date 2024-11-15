@@ -1,0 +1,10 @@
+#ifndef __MY_NEW__
+#define __MY_NEW__
+
+#include <cstddef>
+
+void operator delete(void*);
+
+void* operator new(std::size_t, void*) noexcept;
+
+#endif /* __MY_NEW__ */

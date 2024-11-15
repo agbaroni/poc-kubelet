@@ -1,0 +1,11 @@
+#ifndef __MY_STRING__
+#define __MY_STRING__
+
+namespace std {
+
+    template<class CharT>
+    struct char_traits {};
+
+}
+
+#endif /* __MY_STRING__ */
