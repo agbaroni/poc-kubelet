@@ -1,7 +1,4 @@
-#include <sys/capability.h>
-#include <linux/prctl.h>
-#include <sys/prctl.h>
-#include <linux/securebits.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <cerrno>
 #include <sys/syscall.h>
@@ -43,37 +40,80 @@ cgroup::~cgroup() {
     rmdir(root.data());
 }
 
-int main(int argc, char* argv[]) {
-    prctl(PR_SET_SECUREBITS, SECBIT_KEEP_CAPS);
+static bool* ok = nullptr;
 
-    if (setuid(1000) < 0) {
+int main(int argc, char* argv[]) {
+    cgroup app_cg;
+    int shm_fd;
+    struct clone_args cl_args {
+	.flags = CLONE_INTO_CGROUP | CLONE_NEWPID | CLONE_NEWUSER,
+	.cgroup = app_cg.get_fd()
+    };
+    int app_pid;
+
+    shm_fd = shm_open("/ok", O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+    if (shm_fd < 0) {
 	perror("Error");
 	return -1;
     }
 
-    cgroup app_cg;
-    struct clone_args cl_args {
-	.flags = CLONE_INTO_CGROUP | CLONE_NEWPID,
-	.cgroup = app_cg.get_fd()
-    };
-    auto app_pid = syscall(SYS_clone3, &cl_args, sizeof(struct clone_args));
+    if (ftruncate(shm_fd, sizeof(bool)) < 0) {
+	perror("Error");
+	shm_unlink("/ok");
+	return -1;
+    }
+
+    ok = reinterpret_cast<bool*>(mmap(nullptr, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED_VALIDATE, shm_fd, 0));
+    *ok = false;
+
+    app_pid = syscall(SYS_clone3, &cl_args, sizeof(struct clone_args));
 
     if (app_pid < 0) {
 	std::perror("Error");
     } else if (app_pid == 0) {
-	/*std::stringstream ss;
-	std::ofstream of;
+	shm_fd = shm_open("/ok", O_RDWR, 0);
+	if (shm_fd < 0) {
+	    perror("Error (0)");
+	    return -1;
+	}
 
-	ss << cgroup::root << "/cgroup.procs";
+	ok = reinterpret_cast<bool*>(mmap(nullptr, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED_VALIDATE, shm_fd, 0));
 
-	of.open(ss.str(), std::ios::app);
-	of << 0;
-	of.close();*/
+	while (!*ok);
+
+	shm_unlink("/ok");
 
 	execve("_build/app", nullptr, nullptr);
     } else {
-	std::cout << "app PID: " << app_pid << '\n';
-	sleep(3);
+	std::stringstream ssu;
+	std::stringstream ssg;
+	std::stringstream stg;
+	std::ofstream ofs;
+
+	ssu << "/proc/" << app_pid << "/uid_map";
+	ssg << "/proc/" << app_pid << "/gid_map";
+	stg << "/proc/" << app_pid << "/setgroups";
+
+	ofs.open(ssu.str());
+	ofs << "0 " << getuid() << " 1";
+	ofs.close();
+
+	ofs.open(stg.str());
+	ofs << "deny";
+	ofs.close();
+
+	ofs.open(ssg.str());
+	ofs << "0 " << getgid() << " 1";
+	ofs.close();
+
+	*ok = true;
+
+	std::cout << "========== It ==========\n";
+	std::cout << "PID: " << app_pid << '\n';
+	std::cout << "========================\n";
+	sleep(60);
+
+	shm_unlink("/ok");
     }
 
     return 0;

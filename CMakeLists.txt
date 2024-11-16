@@ -26,3 +26,5 @@ ADD_EXECUTABLE(app ${APP_CXX_SOURCES} sources/start.asm)
 TARGET_LINK_OPTIONS(app PRIVATE -nostdlib -nostdlib++)
 
 ADD_EXECUTABLE(orch sources/orch.cpp)
+
+ADD_CUSTOM_TARGET(Caps ALL sudo setcap 'cap_sys_admin=ep cap_setfcap=ep' orch)

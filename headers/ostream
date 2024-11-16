@@ -47,23 +47,25 @@ namespace std {
 	    template<typename CharU, typename Uraits>
 	    friend basic_ostream<CharU, Uraits>& operator<<(basic_ostream<CharU, Uraits>& bos, int n) {
 		char buffer[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		int i = 0;
+		int i = 18;
+		bool neg = false;
 
 		if (n < 0) {
-		    buffer[i++] = '-';
+		    neg = true;
 		    n = -n;
 		}
 
-		while (true) {
+		do {
 		    auto r = n % 10;
 		    n = n / 10;
-		    buffer[i++] = '0' + r;
-		    if (n == 0) {
-			break;
-		    }
+		    buffer[i--] = '0' + r;
+		} while (n != 0);
+
+		if (neg) {
+		    buffer[i--] = '-';
 		}
 
-		bos << buffer;
+		bos << static_cast<const char*>(&buffer[i + 1]);
 
 		return bos;
 	    }

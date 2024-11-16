@@ -8,11 +8,14 @@ namespace __internal {
 }
 
 int main(int argc, char* argv[]) {
-    std::string_view svHello = "Hello! (";
-    //std::string_view svSp = " ";
-    std::string_view svN = ")\n";
+    std::string_view svHello = "Hello!\n";
 
-    std::cout << svHello << __internal::getpid() << svN;
+    std::cout << "========== I ==========\n";
+    std::cout << "PID: " << __internal::getpid() << "\n";
+    std::cout << "UID: " << __internal::getuid() << "\n";
+    std::cout << "GID: " << __internal::getgid() << "\n";
+    std::cout << svHello;
+    std::cout << "=======================\n";
 
     return 0;
 }
